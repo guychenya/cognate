@@ -1,8 +1,8 @@
-# Claudish
+# Cognate
 
-> Run Claude Code with OpenRouter models via local proxy
+> The universal AI model adapter. Connect your applications to any LLM—from proprietary APIs to local open-source models—through a single, unified interface.
 
-**Claudish** (Claude-ish) is a CLI tool that allows you to run Claude Code with any OpenRouter model by proxying requests through a local Anthropic API-compatible server.
+**Cognate** (formerly Cognate) is a powerful adapter that unifies the diverse ecosystem of AI models. It allows developers to seamlessly switch between major proprietary APIs (like Anthropic, OpenAI, Gemini) and locally-run open-source models (via Ollama). By providing a single, consistent interface, Cognate abstracts away API differences, empowering you to build truly model-agnostic applications.
 
 ## Features
 
@@ -30,7 +30,7 @@
 - [Claude Code](https://claude.com/claude-code) - Claude CLI must be installed
 - [OpenRouter API Key](https://openrouter.ai/keys) - Free tier available
 
-### Install Claudish
+### Install Cognate
 
 **✨ NEW in v1.3.0: Universal compatibility! Works with both Node.js and Bun.**
 
@@ -38,20 +38,20 @@
 
 ```bash
 # With Node.js (works everywhere)
-npx claudish@latest --model x-ai/grok-code-fast-1 "your prompt"
+npx cognate@latest --model x-ai/grok-code-fast-1 "your prompt"
 
 # With Bun (faster execution)
-bunx claudish@latest --model openai/gpt-5-codex "your prompt"
+bunx cognate@latest --model openai/gpt-5-codex "your prompt"
 ```
 
 **Option 2: Install globally**
 
 ```bash
 # With npm (Node.js)
-npm install -g claudish
+npm install -g cognate
 
 # With Bun (faster)
-bun install -g claudish
+bun install -g cognate
 ```
 
 **Option 3: Install from source**
@@ -62,38 +62,38 @@ bun run build      # or: npm run build
 bun link           # or: npm link
 ```
 
-**Performance Note:** While Claudish works with both runtimes, Bun offers faster startup times. Both provide identical functionality.
+**Performance Note:** While Cognate works with both runtimes, Bun offers faster startup times. Both provide identical functionality.
 
 ## Quick Start
 
-### Step 0: Initialize Claudish Skill (First Time Only)
+### Step 0: Initialize Cognate Skill (First Time Only)
 
 ```bash
 # Navigate to your project directory
 cd /path/to/your/project
 
-# Install Claudish skill for automatic best practices
-claudish --init
+# Install Cognate skill for automatic best practices
+cognate --init
 
 # Reload Claude Code to discover the skill
 ```
 
 **What this does:**
-- ✅ Installs Claudish usage skill in `.claude/skills/claudish-usage/`
+- ✅ Installs Cognate usage skill in `.claude/skills/cognate-usage/`
 - ✅ Enables automatic sub-agent delegation
 - ✅ Enforces file-based instruction patterns
 - ✅ Prevents context window pollution
 
 **After running --init**, Claude will automatically:
 - Use sub-agents when you mention external models (Grok, GPT-5, etc.)
-- Follow best practices for Claudish usage
+- Follow best practices for Cognate usage
 - Suggest specialized agents for different tasks
 
 ### Option 1: Interactive Mode (Easiest)
 
 ```bash
 # Just run it - will prompt for API key and model
-claudish
+cognate
 
 # Enter your OpenRouter API key when prompted
 # Select a model from the list
@@ -108,10 +108,10 @@ export OPENROUTER_API_KEY=sk-or-v1-...
 export ANTHROPIC_API_KEY=sk-ant-api03-placeholder
 
 # Run with specific task
-claudish "implement user authentication"
+cognate "implement user authentication"
 
 # Or with specific model
-claudish --model openai/gpt-5-codex "add tests"
+cognate --model openai/gpt-5-codex "add tests"
 ```
 
 **Note:** In interactive mode, if `OPENROUTER_API_KEY` is not set, you'll be prompted to enter it. This makes first-time usage super simple!
@@ -122,10 +122,10 @@ claudish --model openai/gpt-5-codex "add tests"
 
 ```bash
 # Print complete AI agent usage guide
-claudish --help-ai
+cognate --help-ai
 
 # Save guide to file for reference
-claudish --help-ai > claudish-agent-guide.md
+cognate --help-ai > cognate-agent-guide.md
 ```
 
 **Quick Reference for AI Agents:**
@@ -135,27 +135,27 @@ claudish --help-ai > claudish-agent-guide.md
 1. **Get available models:**
    ```bash
    # List all models or search
-   claudish --models
-   claudish --models gemini
+   cognate --models
+   cognate --models gemini
 
    # Get top recommended models (JSON)
-   claudish --top-models --json
+   cognate --top-models --json
    ```
 
-2. **Run Claudish through sub-agent** (recommended pattern):
+2. **Run Cognate through sub-agent** (recommended pattern):
    ```typescript
-   // Don't run Claudish directly in main conversation
+   // Don't run Cognate directly in main conversation
    // Use Task tool to delegate to sub-agent
    const result = await Task({
      subagent_type: "general-purpose",
      description: "Implement feature with Grok",
      prompt: `
-   Use Claudish to implement feature with Grok model.
+   Use Cognate to implement feature with Grok model.
 
    STEPS:
-   1. Create instruction file: /tmp/claudish-task-${Date.now()}.md
+   1. Create instruction file: /tmp/cognate-task-${Date.now()}.md
    2. Write feature requirements to file
-   3. Run: claudish --model x-ai/grok-code-fast-1 --stdin < /tmp/claudish-task-*.md
+   3. Run: cognate --model x-ai/grok-code-fast-1 --stdin < /tmp/cognate-task-*.md
    4. Read result and return ONLY summary (2-3 sentences)
 
    DO NOT return full implementation. Keep response under 300 tokens.
@@ -166,8 +166,8 @@ claudish --help-ai > claudish-agent-guide.md
 3. **File-based instruction pattern** (avoids context pollution):
    ```typescript
    // Write instructions to file
-   const instructionFile = `/tmp/claudish-task-${Date.now()}.md`;
-   const resultFile = `/tmp/claudish-result-${Date.now()}.md`;
+   const instructionFile = `/tmp/cognate-task-${Date.now()}.md`;
+   const resultFile = `/tmp/cognate-result-${Date.now()}.md`;
 
    await Write({ file_path: instructionFile, content: `
    # Task
@@ -177,8 +177,8 @@ claudish --help-ai > claudish-agent-guide.md
    Write results to: ${resultFile}
    ` });
 
-   // Run Claudish with stdin
-   await Bash(`claudish --model x-ai/grok-code-fast-1 --stdin < ${instructionFile}`);
+   // Run Cognate with stdin
+   await Bash(`cognate --model x-ai/grok-code-fast-1 --stdin < ${instructionFile}`);
 
    // Read result
    const result = await Read({ file_path: resultFile });
@@ -194,16 +194,16 @@ claudish --help-ai > claudish-agent-guide.md
 - ✅ Choose appropriate model for task (see `--models` or `--top-models`)
 
 **Resources:**
-- Full AI agent guide: `claudish --help-ai`
-- Skill document: `skills/claudish-usage/SKILL.md` (in repository root)
-- Model integration: `skills/claudish-integration/SKILL.md` (in repository root)
+- Full AI agent guide: `cognate --help-ai`
+- Skill document: `skills/cognate-usage/SKILL.md` (in repository root)
+- Model integration: `skills/cognate-integration/SKILL.md` (in repository root)
 
 ## Usage
 
 ### Basic Syntax
 
 ```bash
-claudish [OPTIONS] <claude-args...>
+cognate [OPTIONS] <claude-args...>
 ```
 
 ### Options
@@ -213,8 +213,8 @@ claudish [OPTIONS] <claude-args...>
 | `-i, --interactive` | Run in interactive mode (persistent session) | Single-shot mode |
 | `-m, --model <model>` | OpenRouter model to use | `x-ai/grok-code-fast-1` |
 | `-p, --port <port>` | Proxy server port | Random (3000-9000) |
-| `-q, --quiet` | Suppress [claudish] log messages | **Quiet in single-shot** |
-| `-v, --verbose` | Show [claudish] log messages | Verbose in interactive |
+| `-q, --quiet` | Suppress [cognate] log messages | **Quiet in single-shot** |
+| `-v, --verbose` | Show [cognate] log messages | Verbose in interactive |
 | `--json` | Output in JSON format (implies --quiet) | `false` |
 | `-d, --debug` | Enable debug logging to file | `false` |
 | `--no-auto-approve` | Disable auto-approve (require prompts) | Auto-approve **enabled** |
@@ -224,7 +224,7 @@ claudish [OPTIONS] <claude-args...>
 | `--top-models` | Show top recommended programming models | - |
 | `--list-agents` | List available agents in current project | - |
 | `--force-update` | Force refresh model cache | - |
-| `--init` | Install Claudish skill in current project | - |
+| `--init` | Install Cognate skill in current project | - |
 | `--help-ai` | Show AI agent usage guide | - |
 | `-h, --help` | Show help message | - |
 
@@ -236,7 +236,7 @@ claudish [OPTIONS] <claude-args...>
 | `ANTHROPIC_API_KEY` | Placeholder to prevent Claude Code dialog (not used for auth) | ✅ **Required** |
 | `CLAUDISH_MODEL` | Default model to use | ❌ No |
 | `CLAUDISH_PORT` | Default proxy port | ❌ No |
-| `CLAUDISH_ACTIVE_MODEL_NAME` | Automatically set by claudish to show active model in status line (read-only) | ❌ No |
+| `CLAUDISH_ACTIVE_MODEL_NAME` | Automatically set by cognate to show active model in status line (read-only) | ❌ No |
 
 **Important Notes:**
 - **NEW in v1.3.0:** In interactive mode, if `OPENROUTER_API_KEY` is not set, you'll be prompted to enter it
@@ -244,7 +244,7 @@ claudish [OPTIONS] <claude-args...>
 
 ## Available Models
 
-Claudish supports 5 OpenRouter models in priority order:
+Cognate supports 5 OpenRouter models in priority order:
 
 1. **x-ai/grok-code-fast-1** (Default)
    - Fast coding-focused model from xAI
@@ -269,7 +269,7 @@ Claudish supports 5 OpenRouter models in priority order:
 List models anytime with:
 
 ```bash
-claudish --models
+cognate --models
 ```
 
 ## Agent Support (NEW in v2.1.0)
@@ -278,13 +278,13 @@ Run specialized agents in headless mode with direct agent selection:
 
 ```bash
 # Use frontend developer agent
-claudish --model x-ai/grok-code-fast-1 --agent frontend:developer "create a React button component"
+cognate --model x-ai/grok-code-fast-1 --agent frontend:developer "create a React button component"
 
 # Use API architect agent
-claudish --model openai/gpt-5-codex --agent api-architect "design REST API for user management"
+cognate --model openai/gpt-5-codex --agent api-architect "design REST API for user management"
 
 # Discover available agents in your project
-claudish --list-agents
+cognate --list-agents
 ```
 
 **Agent Features:**
@@ -296,7 +296,7 @@ claudish --list-agents
 
 ## Status Line Display
 
-Claudish automatically shows critical information in the Claude Code status bar - **no setup required!**
+Cognate automatically shows critical information in the Claude Code status bar - **no setup required!**
 
 **Ultra-Compact Format:** `directory • model-id • $cost • ctx%`
 
@@ -308,7 +308,7 @@ Claudish automatically shows critical information in the Claude Code status bar 
 - ⚪ **Separators** (dim) - Visual dividers
 
 **Examples:**
-- `claudish • x-ai/grok-code-fast-1 • $0.003 • 95%` - Using Grok, $0.003 spent, 95% context left
+- `cognate • x-ai/grok-code-fast-1 • $0.003 • 95%` - Using Grok, $0.003 spent, 95% context left
 - `my-project • openai/gpt-5-codex • $0.12 • 67%` - Using GPT-5, $0.12 spent, 67% context left
 - `backend • minimax/minimax-m2 • $0.05 • 82%` - Using MiniMax M2, $0.05 spent, 82% left
 - `test • openrouter/auto • $0.01 • 90%` - Using any custom model, $0.01 spent, 90% left
@@ -334,18 +334,18 @@ Claudish automatically shows critical information in the Claude Code status bar 
 - ✅ **Future-proof** - Works with new models added to OpenRouter
 
 **How it works:**
-- Each Claudish instance creates a temporary settings file with custom status line
+- Each Cognate instance creates a temporary settings file with custom status line
 - Settings use `--settings` flag (doesn't modify global Claude Code config)
 - Status line uses simple bash script with ANSI colors (no external dependencies!)
 - Displays actual OpenRouter model ID from `CLAUDISH_ACTIVE_MODEL_NAME` env var
 - Context tracking uses model-specific sizes for our shortlist, 100k fallback for others
-- Temp files are automatically cleaned up when Claudish exits
+- Temp files are automatically cleaned up when Cognate exits
 - Each instance is completely isolated - run multiple in parallel!
 
 **Per-instance isolation:**
 - ✅ Doesn't modify `~/.claude/settings.json`
 - ✅ Each instance has its own config
-- ✅ Safe to run multiple Claudish instances in parallel
+- ✅ Safe to run multiple Cognate instances in parallel
 - ✅ Standard Claude Code unaffected
 - ✅ Temp files auto-cleanup on exit
 - ✅ No external dependencies (bash only, no jq!)
@@ -356,23 +356,23 @@ Claudish automatically shows critical information in the Claude Code status bar 
 
 ```bash
 # Simple prompt
-claudish "fix the bug in user.ts"
+cognate "fix the bug in user.ts"
 
 # Multi-word prompt
-claudish "implement user authentication with JWT tokens"
+cognate "implement user authentication with JWT tokens"
 ```
 
 ### With Specific Model
 
 ```bash
 # Use Grok for fast coding
-claudish --model x-ai/grok-code-fast-1 "add error handling"
+cognate --model x-ai/grok-code-fast-1 "add error handling"
 
 # Use GPT-5 Codex for complex tasks
-claudish --model openai/gpt-5-codex "refactor entire API layer"
+cognate --model openai/gpt-5-codex "refactor entire API layer"
 
 # Use Qwen for UI tasks
-claudish --model qwen/qwen3-vl-235b-a22b-instruct "implement dashboard UI"
+cognate --model qwen/qwen3-vl-235b-a22b-instruct "implement dashboard UI"
 ```
 
 ### Autonomous Mode
@@ -381,53 +381,53 @@ Auto-approve is **enabled by default**. For fully autonomous mode, add `--danger
 
 ```bash
 # Basic usage (auto-approve already enabled)
-claudish "delete unused files"
+cognate "delete unused files"
 
 # Fully autonomous (auto-approve + dangerous sandbox disabled)
-claudish --dangerous "install dependencies"
+cognate --dangerous "install dependencies"
 
 # Disable auto-approve if you want prompts
-claudish --no-auto-approve "make important changes"
+cognate --no-auto-approve "make important changes"
 ```
 
 ### Custom Port
 
 ```bash
 # Use specific port
-claudish --port 3000 "analyze codebase"
+cognate --port 3000 "analyze codebase"
 
 # Or set default
 export CLAUDISH_PORT=3000
-claudish "your task"
+cognate "your task"
 ```
 
 ### Passing Claude Flags
 
 ```bash
 # Verbose mode
-claudish "debug issue" --verbose
+cognate "debug issue" --verbose
 
 # Custom working directory
-claudish "analyze code" --cwd /path/to/project
+cognate "analyze code" --cwd /path/to/project
 
 # Multiple flags
-claudish --model openai/gpt-5-codex "task" --verbose --debug
+cognate --model openai/gpt-5-codex "task" --verbose --debug
 ```
 
 ### Monitor Mode
 
-**NEW!** Claudish now includes a monitor mode to help you understand how Claude Code works internally.
+**NEW!** Cognate now includes a monitor mode to help you understand how Claude Code works internally.
 
 ```bash
 # Enable monitor mode (requires real Anthropic API key)
-claudish --monitor --debug "implement a feature"
+cognate --monitor --debug "implement a feature"
 ```
 
 **What Monitor Mode Does:**
 - ✅ **Proxies to REAL Anthropic API** (not OpenRouter) - Uses your actual Anthropic API key
 - ✅ **Logs ALL traffic** - Captures complete requests and responses
 - ✅ **Both streaming and JSON** - Logs SSE streams and JSON responses
-- ✅ **Debug logs to file** - Saves to `logs/claudish_*.log` when `--debug` is used
+- ✅ **Debug logs to file** - Saves to `logs/cognate_*.log` when `--debug` is used
 - ✅ **Pass-through proxy** - No translation, forwards as-is to Anthropic
 
 **When to use Monitor Mode:**
@@ -442,9 +442,9 @@ claudish --monitor --debug "implement a feature"
 export ANTHROPIC_API_KEY='sk-ant-api03-...'
 
 # Use with --debug to save logs to file
-claudish --monitor --debug "your task"
+cognate --monitor --debug "your task"
 
-# Logs are saved to: logs/claudish_TIMESTAMP.log
+# Logs are saved to: logs/cognate_TIMESTAMP.log
 ```
 
 **Example Output:**
@@ -476,42 +476,42 @@ data: {"type":"content_block_start",...}
 
 ### Output Modes
 
-Claudish supports three output modes for different use cases:
+Cognate supports three output modes for different use cases:
 
 #### 1. Quiet Mode (Default in Single-Shot)
 
-Clean output with no `[claudish]` logs - perfect for piping to other tools:
+Clean output with no `[cognate]` logs - perfect for piping to other tools:
 
 ```bash
 # Quiet by default in single-shot
-claudish "what is 2+2?"
+cognate "what is 2+2?"
 # Output: 2 + 2 equals 4.
 
 # Use in pipelines
-claudish "list 3 colors" | grep -i blue
+cognate "list 3 colors" | grep -i blue
 
 # Redirect to file
-claudish "analyze code" > analysis.txt
+cognate "analyze code" > analysis.txt
 ```
 
 #### 2. Verbose Mode
 
-Show all `[claudish]` log messages for debugging:
+Show all `[cognate]` log messages for debugging:
 
 ```bash
 # Verbose mode
-claudish --verbose "what is 2+2?"
+cognate --verbose "what is 2+2?"
 # Output:
-# [claudish] Starting Claude Code with openai/gpt-4o
-# [claudish] Proxy URL: http://127.0.0.1:8797
-# [claudish] Status line: dir • openai/gpt-4o • $cost • ctx%
+# [cognate] Starting Claude Code with openai/gpt-4o
+# [cognate] Proxy URL: http://127.0.0.1:8797
+# [cognate] Status line: dir • openai/gpt-4o • $cost • ctx%
 # ...
 # 2 + 2 equals 4.
-# [claudish] Shutting down proxy server...
-# [claudish] Done
+# [cognate] Shutting down proxy server...
+# [cognate] Done
 
 # Interactive mode is verbose by default
-claudish --interactive
+cognate --interactive
 ```
 
 #### 3. JSON Output Mode
@@ -520,22 +520,22 @@ Structured output perfect for automation and tool integration:
 
 ```bash
 # JSON output (always quiet)
-claudish --json "what is 2+2?"
+cognate --json "what is 2+2?"
 # Output: {"type":"result","result":"2 + 2 equals 4.","total_cost_usd":0.068,"usage":{...}}
 
 # Extract just the result with jq
-claudish --json "list 3 colors" | jq -r '.result'
+cognate --json "list 3 colors" | jq -r '.result'
 
 # Get cost and token usage
-claudish --json "analyze code" | jq '{result, cost: .total_cost_usd, tokens: .usage.input_tokens}'
+cognate --json "analyze code" | jq '{result, cost: .total_cost_usd, tokens: .usage.input_tokens}'
 
 # Use in scripts
-RESULT=$(claudish --json "check if tests pass" | jq -r '.result')
+RESULT=$(cognate --json "check if tests pass" | jq -r '.result')
 echo "AI says: $RESULT"
 
 # Track costs across multiple runs
 for task in task1 task2 task3; do
-  claudish --json "$task" | jq -r '"\(.total_cost_usd)"'
+  cognate --json "$task" | jq -r '"\(.total_cost_usd)"'
 done | awk '{sum+=$1} END {print "Total: $"sum}'
 ```
 
@@ -553,7 +553,7 @@ done | awk '{sum+=$1} END {print "Total: $"sum}'
 ### Architecture
 
 ```
-claudish "your prompt"
+cognate "your prompt"
     ↓
 1. Parse arguments (--model, --no-auto-approve, --dangerous, etc.)
 2. Find available port (random or specified)
@@ -582,7 +582,7 @@ Claude Code ← Anthropic API format ← Local Proxy (logs) ← Anthropic API
 
 ### Parallel Runs
 
-Each `claudish` invocation:
+Each `cognate` invocation:
 - Gets a unique random port
 - Starts isolated proxy server
 - Runs independent Claude Code instance
@@ -592,24 +592,24 @@ This allows multiple parallel runs:
 
 ```bash
 # Terminal 1
-claudish --model x-ai/grok-code-fast-1 "task A"
+cognate --model x-ai/grok-code-fast-1 "task A"
 
 # Terminal 2
-claudish --model openai/gpt-5-codex "task B"
+cognate --model openai/gpt-5-codex "task B"
 
 # Terminal 3
-claudish --model minimax/minimax-m2 "task C"
+cognate --model minimax/minimax-m2 "task C"
 ```
 
 ## Extended Thinking Support
 
-**NEW in v1.1.0**: Claudish now fully supports models with extended thinking/reasoning capabilities (Grok, o1, etc.) with complete Anthropic Messages API protocol compliance.
+**NEW in v1.1.0**: Cognate now fully supports models with extended thinking/reasoning capabilities (Grok, o1, etc.) with complete Anthropic Messages API protocol compliance.
 
 ### Thinking Translation Model (v1.5.0)
 
-Claudish includes a sophisticated **Thinking Translation Model** that aligns Claude Code's native thinking budget with the unique requirements of every major AI provider.
+Cognate includes a sophisticated **Thinking Translation Model** that aligns Claude Code's native thinking budget with the unique requirements of every major AI provider.
 
-When you set a thinking budget in Claude (e.g., `budget: 16000`), Claudish automatically translates it:
+When you set a thinking budget in Claude (e.g., `budget: 16000`), Cognate automatically translates it:
 
 | Provider | Model | Translation Logic |
 | :--- | :--- | :--- |
@@ -627,9 +627,9 @@ This ensures you can use standard Claude Code thinking controls with **ANY** sup
 
 Some AI models (like Grok and OpenAI's o1) can show their internal reasoning process before providing the final answer. This "thinking" content helps you understand how the model arrived at its conclusion.
 
-### How Claudish Handles Thinking
+### How Cognate Handles Thinking
 
-Claudish implements the Anthropic Messages API's `interleaved-thinking` protocol:
+Cognate implements the Anthropic Messages API's `interleaved-thinking` protocol:
 
 **Thinking Blocks (Hidden):**
 - Contains model's reasoning process
@@ -703,9 +703,9 @@ For complete protocol documentation, see:
 
 ## Dynamic Reasoning Support (NEW in v1.4.0)
 
-**Claudish now intelligently adapts to ANY reasoning model!**
+**Cognate now intelligently adapts to ANY reasoning model!**
 
-No more hardcoded lists or manual flags. Claudish dynamically queries OpenRouter metadata to enable thinking capabilities for any model that supports them.
+No more hardcoded lists or manual flags. Cognate dynamically queries OpenRouter metadata to enable thinking capabilities for any model that supports them.
 
 ### 🧠 Dynamic Thinking Features
 
@@ -724,11 +724,11 @@ No more hardcoded lists or manual flags. Claudish dynamically queries OpenRouter
 
 3.  **Universal Compatibility**:
     - Use "ultrathink" or "think hard" prompts with ANY supported model
-    - Claudish handles the translation layer for you
+    - Cognate handles the translation layer for you
 
 ## Context Scaling & Auto-Compaction
 
-**NEW in v1.2.0**: Claudish now intelligently manages token counting to support ANY context window size (from 128k to 2M+) while preserving Claude Code's native auto-compaction behavior.
+**NEW in v1.2.0**: Cognate now intelligently manages token counting to support ANY context window size (from 128k to 2M+) while preserving Claude Code's native auto-compaction behavior.
 
 ### The Challenge
 
@@ -738,7 +738,7 @@ Claude Code naturally assumes a fixed context window (typically 200k tokens for 
 
 ### The Solution: Token Scaling
 
-Claudish implements a "Dual-Accounting" system:
+Cognate implements a "Dual-Accounting" system:
 
 1. **Internal Scaling (For Claude):**
    - We fetch the *real* context limit from OpenRouter (e.g., 1M tokens).
@@ -779,7 +779,7 @@ Claudish implements a "Dual-Accounting" system:
 
 ### Proxy Implementation
 
-Claudish uses a **Hono-based proxy server** inspired by [claude-code-proxy](https://github.com/kiyo-e/claude-code-proxy):
+Cognate uses a **Hono-based proxy server** inspired by [claude-code-proxy](https://github.com/kiyo-e/claude-code-proxy):
 
 - **Framework**: [Hono](https://hono.dev/) - Fast, lightweight web framework
 - **API Translation**: Converts Anthropic API format ↔ OpenAI format
@@ -820,7 +820,7 @@ bun test
 
 ### Protocol Compliance Testing
 
-Claudish includes a comprehensive snapshot testing system to ensure 1:1 compatibility with the official Claude Code protocol:
+Cognate includes a comprehensive snapshot testing system to ensure 1:1 compatibility with the official Claude Code protocol:
 
 ```bash
 # Run snapshot tests (13/13 passing ✅)
@@ -857,7 +857,7 @@ bun tests/debug-snapshot.ts
 bun run install:global
 
 # Now use anywhere
-claudish "your task"
+cognate "your task"
 ```
 
 ## Troubleshooting
@@ -891,7 +891,7 @@ source ~/.zshrc
 Specify a custom port:
 
 ```bash
-claudish --port 3000 "your task"
+cognate --port 3000 "your task"
 ```
 
 Or increase port range in `src/config.ts`.
@@ -910,13 +910,13 @@ If the status line doesn't show the model name:
 
 1. **Check if --settings flag is being passed:**
    ```bash
-   # Look for this in Claudish output:
-   # [claudish] Instance settings: /tmp/claudish-settings-{timestamp}.json
+   # Look for this in Cognate output:
+   # [cognate] Instance settings: /tmp/cognate-settings-{timestamp}.json
    ```
 
 2. **Verify environment variable is set:**
    ```bash
-   # Should be set automatically by Claudish
+   # Should be set automatically by Cognate
    echo $CLAUDISH_ACTIVE_MODEL_NAME
    # Should output something like: xAI/Grok-1
    ```
@@ -930,9 +930,9 @@ If the status line doesn't show the model name:
 
 4. **Check temp settings file:**
    ```bash
-   # File is created in /tmp/claudish-settings-*.json
-   ls -la /tmp/claudish-settings-*.json 2>/dev/null | tail -1
-   cat /tmp/claudish-settings-*.json | head -1
+   # File is created in /tmp/cognate-settings-*.json
+   ls -la /tmp/cognate-settings-*.json 2>/dev/null | tail -1
+   cat /tmp/cognate-settings-*.json | head -1
    ```
 
 5. **Verify bash is available:**
@@ -941,11 +941,11 @@ If the status line doesn't show the model name:
    # Should show path to bash (usually /bin/bash or /usr/bin/bash)
    ```
 
-**Note:** Temp settings files are automatically cleaned up when Claudish exits. If you see multiple files, you may have crashed instances - they're safe to delete manually.
+**Note:** Temp settings files are automatically cleaned up when Cognate exits. If you see multiple files, you may have crashed instances - they're safe to delete manually.
 
 ## Comparison with Claude Code
 
-| Feature | Claude Code | Claudish |
+| Feature | Claude Code | Cognate |
 |---------|-------------|----------|
 | Model | Anthropic models only | Any OpenRouter model |
 | API | Anthropic API | OpenRouter API |
@@ -954,7 +954,7 @@ If the status line doesn't show the model name:
 | Speed | Direct connection | ~Same (local proxy) |
 | Features | All Claude Code features | All Claude Code features |
 
-**When to use Claudish:**
+**When to use Cognate:**
 - ✅ Want to try different models (Grok, GPT-5, etc.)
 - ✅ Need OpenRouter-specific features
 - ✅ Prefer OpenRouter pricing
@@ -981,7 +981,7 @@ MIT © MadAppGang
 
 ## Acknowledgments
 
-Claudish's proxy implementation is based on [claude-code-proxy](https://github.com/kiyo-e/claude-code-proxy) by [@kiyo-e](https://github.com/kiyo-e). We've adapted their excellent Hono-based API translation layer for OpenRouter integration.
+Cognate's proxy implementation is based on [claude-code-proxy](https://github.com/kiyo-e/claude-code-proxy) by [@kiyo-e](https://github.com/kiyo-e). We've adapted their excellent Hono-based API translation layer for OpenRouter integration.
 
 **Key contributions from claude-code-proxy:**
 - Anthropic ↔ OpenAI API format translation (`transform.ts`)

@@ -166,7 +166,7 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       printAIAgentGuide();
       process.exit(0);
     } else if (arg === "--init") {
-      await initializeClaudishSkill();
+      await initializeCognateSkill();
       process.exit(0);
     } else if (arg === "--top-models") {
       // Show recommended/top models (curated list)
@@ -936,33 +936,33 @@ function printAIAgentGuide(): void {
 /**
  * Initialize Claudish skill in current project
  */
-async function initializeClaudishSkill(): Promise<void> {
-  console.log("🔧 Initializing Claudish skill in current project...\n");
+async function initializeCognateSkill(): Promise<void> {
+  console.log("🔧 Initializing Cognate skill in current project...\n");
 
   // Get current working directory
   const cwd = process.cwd();
   const claudeDir = join(cwd, ".claude");
   const skillsDir = join(claudeDir, "skills");
-  const claudishSkillDir = join(skillsDir, "claudish-usage");
-  const skillFile = join(claudishSkillDir, "SKILL.md");
+  const cognateSkillDir = join(skillsDir, "cognate-usage");
+  const skillFile = join(cognateSkillDir, "SKILL.md");
 
   // Check if skill already exists
   if (existsSync(skillFile)) {
-    console.log("✅ Claudish skill already installed at:");
+    console.log("✅ Cognate skill already installed at:");
     console.log(`   ${skillFile}\n`);
-    console.log("💡 To reinstall, delete the file and run 'claudish --init' again.");
+    console.log("💡 To reinstall, delete the file and run 'cognate --init' again.");
     return;
   }
 
-  // Get source skill file from Claudish installation
-  const sourceSkillPath = join(__dirname, "../skills/claudish-usage/SKILL.md");
+  // Get source skill file from Cognate installation
+  const sourceSkillPath = join(__dirname, "../skills/cognate-usage/SKILL.md");
 
   if (!existsSync(sourceSkillPath)) {
-    console.error("❌ Error: Claudish skill file not found in installation.");
+    console.error("❌ Error: Cognate skill file not found in installation.");
     console.error(`   Expected at: ${sourceSkillPath}`);
-    console.error("\n💡 Try reinstalling Claudish:");
-    console.error("   npm install -g claudish@latest");
-    throw new Error("Claudish skill file not found in installation.");
+    console.error("\n💡 Try reinstalling Cognate:");
+    console.error("   npm install -g cognate@latest");
+    throw new Error("Cognate skill file not found in installation.");
   }
 
   try {
@@ -977,38 +977,38 @@ async function initializeClaudishSkill(): Promise<void> {
       console.log("📁 Created .claude/skills/ directory");
     }
 
-    if (!existsSync(claudishSkillDir)) {
-      mkdirSync(claudishSkillDir, { recursive: true });
-      console.log("📁 Created .claude/skills/claudish-usage/ directory");
+    if (!existsSync(cognateSkillDir)) {
+      mkdirSync(cognateSkillDir, { recursive: true });
+      console.log("📁 Created .claude/skills/cognate-usage/ directory");
     }
 
     // Copy skill file
     copyFileSync(sourceSkillPath, skillFile);
-    console.log("✅ Installed Claudish skill at:");
+    console.log("✅ Installed Cognate skill at:");
     console.log(`   ${skillFile}\n`);
 
     // Print success message with next steps
     console.log("━".repeat(60));
-    console.log("\n🎉 Claudish skill installed successfully!\n");
+    console.log("\n🎉 Cognate skill installed successfully!\n");
     console.log("📋 Next steps:\n");
     console.log("1. Reload Claude Code to discover the skill");
     console.log("   - Restart Claude Code, or");
     console.log("   - Re-open your project\n");
-    console.log("2. Use Claudish with external models:");
+    console.log("2. Use Cognate with external models:");
     console.log("   - User: \"use Grok to implement feature X\"");
     console.log("   - Claude will automatically use the skill\n");
     console.log("💡 The skill enforces best practices:");
     console.log("   ✅ Mandatory sub-agent delegation");
     console.log("   ✅ File-based instruction patterns");
     console.log("   ✅ Context window protection\n");
-    console.log("📖 For more info: claudish --help-ai\n");
+    console.log("📖 For more info: cognate --help-ai\n");
     console.log("━".repeat(60));
 
   } catch (error) {
-    console.error("\n❌ Error installing Claudish skill:");
+    console.error("\n❌ Error installing Cognate skill:");
     console.error(error instanceof Error ? error.message : String(error));
     console.error("\n💡 Make sure you have write permissions in the current directory.");
-    throw new Error("Error installing Claudish skill: " + (error instanceof Error ? error.message : String(error)));
+    throw new Error("Error installing Cognate skill: " + (error instanceof Error ? error.message : String(error)));
   }
 }
 
