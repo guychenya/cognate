@@ -410,24 +410,56 @@ export async function selectModelsForProfile(): Promise<{
 /**
  * Prompt for API key
  */
-export async function promptForApiKey(): Promise<string> {
-  console.log("\nOpenRouter API Key Required");
-  console.log("Get your free API key from: https://openrouter.ai/keys\n");
+export async function promptForApiKey(provider: string = "OpenRouter"): Promise<string> {
+  if (provider === "OpenRouter") {
+    console.log("\nOpenRouter API Key Required");
+    console.log("Get your free API key from: https://openrouter.ai/keys\n");
 
-  const apiKey = await input({
-    message: "Enter your OpenRouter API key:",
-    validate: (value) => {
-      if (!value.trim()) {
-        return "API key cannot be empty";
-      }
-      if (!value.startsWith("sk-or-")) {
-        return 'API key should start with "sk-or-"';
-      }
-      return true;
-    },
-  });
+    const apiKey = await input({
+      message: "Enter your OpenRouter API key:",
+      validate: (value) => {
+        if (!value.trim()) {
+          return "API key cannot be empty";
+        }
+        if (!value.startsWith("sk-or-")) {
+          return 'API key should start with "sk-or-"';
+        }
+        return true;
+      },
+    });
 
-  return apiKey;
+    return apiKey;
+  } else if (provider === "Gemini") {
+    console.log("\nGoogle Gemini API Key Required");
+    console.log("Get your API key from: https://makersuite.google.com/app/apikey\n");
+
+    const apiKey = await input({
+      message: "Enter your Google Gemini API key:",
+      validate: (value) => {
+        if (!value.trim()) {
+          return "API key cannot be empty";
+        }
+        return true;
+      },
+    });
+
+    return apiKey;
+  } else {
+    // Generic provider
+    console.log(`\n${provider} API Key Required\n`);
+
+    const apiKey = await input({
+      message: `Enter your ${provider} API key:`,
+      validate: (value) => {
+        if (!value.trim()) {
+          return "API key cannot be empty";
+        }
+        return true;
+      },
+    });
+
+    return apiKey;
+  }
 }
 
 /**

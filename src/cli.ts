@@ -39,6 +39,7 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
     stdin: false, // Read prompt from stdin instead of args
     freeOnly: false, // Show all models by default
     claudeArgs: [],
+    useGeminiNative: false, // Default to false
   };
 
   // Check for environment variable overrides
@@ -78,7 +79,7 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       if (!modelArg) {
         console.error("--model requires a value");
         printAvailableModels();
-        process.exit(1);
+        throw new Error("--model requires a value");
       }
       config.model = modelArg; // Accept any model ID
     } else if (arg === "--model-opus") { // Model mapping flags
@@ -97,12 +98,12 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       const portArg = args[++i];
       if (!portArg) {
         console.error("--port requires a value");
-        process.exit(1);
+        throw new Error("--port requires a value");
       }
       const port = Number.parseInt(portArg, 10);
       if (Number.isNaN(port) || port < 1 || port > 65535) {
         console.error(`Invalid port: ${portArg}`);
-        process.exit(1);
+        throw new Error(`Invalid port: ${portArg}`);
       }
       config.port = port;
     } else if (arg === "--no-auto-approve") {
@@ -117,13 +118,14 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       const levelArg = args[++i];
       if (!levelArg || !["debug", "info", "minimal"].includes(levelArg)) {
         console.error("--log-level requires one of: debug, info, minimal");
-        process.exit(1);
+        throw new Error("--log-level requires one of: debug, info, minimal");
       }
       config.logLevel = levelArg as "debug" | "info" | "minimal";
     } else if (arg === "--quiet" || arg === "-q") {
       config.quiet = true;
     } else if (arg === "--verbose" || arg === "-v") {
       config.quiet = false;
+      config.debug = true; // Also enable debug logging when verbose
     } else if (arg === "--json") {
       config.jsonOutput = true;
     } else if (arg === "--monitor") {
@@ -136,9 +138,11 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       const profileArg = args[++i];
       if (!profileArg) {
         console.error("--profile requires a profile name");
-        process.exit(1);
+        throw new Error("--profile requires a profile name");
       }
       config.profile = profileArg;
+    } else if (arg === "--use-gemini-native") {
+      config.useGeminiNative = true;
     } else if (arg === "--cost-tracker") {
       // Enable cost tracking for this session
       config.costTracking = true;
@@ -228,7 +232,7 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       console.log("[claudish] API key will be extracted from Claude Code's requests");
       console.log("[claudish] Ensure you are logged in to Claude Code (claude auth login)");
     }
-  } else {
+  } else if (!config.useGeminiNative) { // Only check for OpenRouter API key if not in monitor mode AND not using native Gemini
     // OpenRouter mode: requires OpenRouter API key
     const apiKey = process.env[ENV.OPENROUTER_API_KEY];
     if (!apiKey) {
@@ -240,7 +244,7 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
         console.error("");
         console.error("Set it now:");
         console.error("  export OPENROUTER_API_KEY='sk-or-v1-...'");
-        process.exit(1);
+        throw new Error(`OPENROUTER_API_KEY environment variable is required. (Diagnostic: useGeminiNative=${config.useGeminiNative}, interactive=${config.interactive})`);
       }
       // Will be prompted for in interactive mode
       config.openrouterApiKey = undefined;
@@ -320,25 +324,24 @@ async function searchAndPrintModels(query: string, forceUpdate: boolean): Promis
   // Fetch if no cache or stale
   if (models.length === 0) {
     console.error("🔄 Fetching all models from OpenRouter (this may take a moment)...");
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/models");
-      if (!response.ok) throw new Error(`API returned ${response.status}`);
-
-      const data = await response.json();
-      models = data.data;
-
-      // Cache result
-      writeFileSync(ALL_MODELS_JSON_PATH, JSON.stringify({
-        lastUpdated: new Date().toISOString(),
-        models
-      }), "utf-8");
-
-      console.error(`✅ Cached ${models.length} models`);
-    } catch (error) {
-      console.error(`❌ Failed to fetch models: ${error}`);
-      process.exit(1);
-    }
-  }
+          try {
+            const response = await fetch("https://openrouter.ai/api/v1/models");
+            if (!response.ok) throw new Error(`API returned ${response.status}`);
+    
+            const data = await response.json();
+            models = data.data;
+    
+            // Cache result
+            writeFileSync(ALL_MODELS_JSON_PATH, JSON.stringify({
+              lastUpdated: new Date().toISOString(),
+              models
+            }), "utf-8");
+    
+            console.error(`✅ Cached ${models.length} models`);
+          } catch (error) {
+            console.error(`❌ Failed to fetch models: ${error}`);
+            throw new Error(`Failed to fetch models: ${error}`);
+          }  }
 
   // Perform fuzzy search
   const results = models
@@ -428,25 +431,24 @@ async function printAllModels(jsonOutput: boolean, forceUpdate: boolean): Promis
   // Fetch if no cache or stale
   if (models.length === 0) {
     console.error("🔄 Fetching all models from OpenRouter...");
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/models");
-      if (!response.ok) throw new Error(`API returned ${response.status}`);
-
-      const data = await response.json();
-      models = data.data;
-
-      // Cache result
-      writeFileSync(ALL_MODELS_JSON_PATH, JSON.stringify({
-        lastUpdated: new Date().toISOString(),
-        models
-      }), "utf-8");
-
-      console.error(`✅ Cached ${models.length} models`);
-    } catch (error) {
-      console.error(`❌ Failed to fetch models: ${error}`);
-      process.exit(1);
-    }
-  }
+          try {
+            const response = await fetch("https://openrouter.ai/api/v1/models");
+            if (!response.ok) throw new Error(`API returned ${response.status}`);
+    
+            const data = await response.json();
+            models = data.data;
+    
+            // Cache result
+            writeFileSync(ALL_MODELS_JSON_PATH, JSON.stringify({
+              lastUpdated: new Date().toISOString(),
+              models
+            }), "utf-8");
+    
+            console.error(`✅ Cached ${models.length} models`);
+          } catch (error) {
+            console.error(`❌ Failed to fetch models: ${error}`);
+            throw new Error(`Failed to fetch models: ${error}`);
+          }  }
 
   // JSON output
   if (jsonOutput) {
@@ -773,6 +775,7 @@ OPTIONS:
   --monitor                Monitor mode - proxy to REAL Anthropic API and log all traffic
   --no-auto-approve        Disable auto permission skip (prompts enabled)
   --dangerous              Pass --dangerouslyDisableSandbox to Claude Code
+  --use-gemini-native      Force usage of the native Google Gemini API handler
   --cost-tracker           Enable cost tracking for API usage (NB!)
   --audit-costs            Show cost analysis report
   --reset-costs            Reset accumulated cost statistics
@@ -794,6 +797,10 @@ PROFILE MANAGEMENT:
   claudish profile use     Set default profile (interactive or claudish profile use <name>)
   claudish profile show    Show profile details (default profile or claudish profile show <name>)
   claudish profile edit    Edit a profile (interactive or claudish profile edit <name>)
+
+UPDATE MANAGEMENT:
+  claudish update          Check for updates and apply if available
+  (also checks automatically in interactive mode)
 
 MODEL MAPPING (per-role override):
   --model-opus <model>     Model for Opus role (planning, complex tasks)
@@ -819,6 +826,7 @@ ENVIRONMENT VARIABLES:
   Claudish automatically loads .env file from current directory.
 
   OPENROUTER_API_KEY              Required: Your OpenRouter API key
+  GEMINI_API_KEY                  Optional: Your Google Gemini API key for direct access
   CLAUDISH_MODEL                  Default model to use (takes priority)
   ANTHROPIC_MODEL                 Claude Code standard: model to use (fallback)
   CLAUDISH_PORT                   Default port for proxy
@@ -887,6 +895,12 @@ EXAMPLES:
   # Verbose mode in single-shot (show [claudish] logs)
   claudish --verbose "analyze code structure"
 
+  # Update Claudish to latest version
+  claudish update
+
+  # Use Google Gemini directly (set GEMINI_API_KEY env var or provide when prompted)
+  claudish --model gemini-1.5-pro "explain quantum computing"
+
 AVAILABLE MODELS:
   List all models:     claudish --models
   Search models:       claudish --models <query>
@@ -915,7 +929,7 @@ function printAIAgentGuide(): void {
     console.error("\nThe guide should be located at: AI_AGENT_GUIDE.md");
     console.error("You can also view it online at:");
     console.error("https://github.com/MadAppGang/claude-code/blob/main/mcp/claudish/AI_AGENT_GUIDE.md");
-    process.exit(1);
+    throw new Error("Error reading AI Agent Guide");
   }
 }
 
@@ -948,7 +962,7 @@ async function initializeClaudishSkill(): Promise<void> {
     console.error(`   Expected at: ${sourceSkillPath}`);
     console.error("\n💡 Try reinstalling Claudish:");
     console.error("   npm install -g claudish@latest");
-    process.exit(1);
+    throw new Error("Claudish skill file not found in installation.");
   }
 
   try {
@@ -994,7 +1008,7 @@ async function initializeClaudishSkill(): Promise<void> {
     console.error("\n❌ Error installing Claudish skill:");
     console.error(error instanceof Error ? error.message : String(error));
     console.error("\n💡 Make sure you have write permissions in the current directory.");
-    process.exit(1);
+    throw new Error("Error installing Claudish skill: " + (error instanceof Error ? error.message : String(error)));
   }
 }
 

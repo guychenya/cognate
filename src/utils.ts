@@ -56,3 +56,10 @@ export function formatCurrency(amount: number): string {
   if (amount === 0) return "FREE";
   return `$${amount.toFixed(2)}`;
 }
+
+/**
+ * Generate a unique short ID string
+ */
+export function generateUniqueId(): string {
+  return Math.random().toString(36).substring(2, 10);
+}

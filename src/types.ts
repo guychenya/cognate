@@ -30,6 +30,8 @@ export interface ClaudishConfig {
   stdin: boolean; // Read prompt from stdin instead of args
   openrouterApiKey?: string; // Optional in monitor mode
   anthropicApiKey?: string; // Required in monitor mode
+  geminiApiKey?: string; // Add geminiApiKey to config
+  useGeminiNative?: boolean; // Explicitly use native Gemini handler
   agent?: string; // Agent to use for execution (e.g., "frontend:developer")
   freeOnly?: boolean; // Show only free models in selector
   profile?: string; // Profile name to use for model mapping
@@ -124,3 +126,60 @@ export interface ProxyServer {
   url: string;
   shutdown: () => Promise<void>;
 }
+
+// Generic Content Block for multimodal input
+export interface GenericContentBlock {
+  type: "text" | "image_url" | "tool_use" | "tool_result";
+  text?: string; // For type: "text"
+  image_url?: { url: string }; // For type: "image_url"
+  id?: string; // For tool_use/tool_result
+  name?: string; // For tool_use
+  input?: Record<string, any>; // For tool_use arguments
+  tool_use_id?: string; // For tool_result
+  content?: string | Record<string, any>; // For tool_result content
+}
+
+// Generic Message Interface (for both input and output)
+export interface Message {
+  role: "user" | "assistant" | "system" | "tool";
+  content: string | GenericContentBlock[];
+  // Optional: For assistant messages that contain tool calls without text
+  tool_calls?: ToolCall[];
+  // Optional: For tool messages, to link back to the tool call
+  tool_call_id?: string;
+}
+
+// Generic Model Configuration for generation parameters
+export interface ModelConfig {
+  maxOutputTokens?: number;
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+}
+
+// Generic Tool Call structure
+export interface ToolCall {
+  id: string;
+  name: string;
+  args: Record<string, any>;
+  signature?: string; // Optional: for thought signatures
+}
+
+// Generic Generation Result
+export interface GenerationResult {
+  fullContent: string;
+  toolCalls: ToolCall[];
+  reasoningDetails: any[]; // Raw reasoning details from the model
+}
+
+// Generic API Handler Interface
+export interface APIHandler {
+  generate(
+    messages: Message[],
+    modelId: string,
+    onChunk: (chunk: string) => void,
+    modelConfig?: ModelConfig,
+    tools?: any[], // New: Optional tools parameter
+  ): Promise<GenerationResult>;
+}
+
