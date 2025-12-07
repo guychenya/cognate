@@ -2,22 +2,35 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { log, isLoggingEnabled } from "./logger.js";
-import type { ProxyServer } from "./types.js";
+import type { ProxyServer, ClaudishConfig } from "./types.js";
 import { NativeHandler } from "./handlers/native-handler.js";
 import { OpenRouterHandler } from "./handlers/openrouter-handler.js";
 import { GeminiNativeHandler } from "./handlers/gemini-native-handler.js";
 import type { APIHandler } from "./types.js";
 
 export async function createProxyServer(
-  port: number,
-  openrouterApiKey?: string,
-  model?: string,
-  monitorMode: boolean = false,
-  anthropicApiKey?: string,
-  geminiApiKey?: string, // New: Gemini API Key
-  useGeminiNative: boolean = false, // New: Explicit flag to force Gemini native
-  modelMap?: { opus?: string; sonnet?: string; haiku?: string; subagent?: string }
+  config: ClaudishConfig
 ): Promise<ProxyServer> {
+  const { 
+    port, 
+    openrouterApiKey, 
+    model, 
+    monitor: monitorMode, 
+    anthropicApiKey, 
+    geminiApiKey, 
+    useGeminiNative, 
+    modelOpus,
+    modelSonnet,
+    modelHaiku,
+    modelSubagent
+  } = config;
+
+  const modelMap = {
+    opus: modelOpus,
+    sonnet: modelSonnet,
+    haiku: modelHaiku,
+    subagent: modelSubagent
+  };
 
   log(`[Proxy] createProxyServer called with geminiApiKey: ${geminiApiKey ? "Set" : "Not Set"}`);
 

@@ -187,21 +187,11 @@ async function runCli() {
 
     // Start proxy server
     log(`[claudish] Gemini API Key (from env/prompt): ${process.env[ENV.GEMINI_API_KEY] ? "Set" : "Not Set"}`);
-    const proxy = await createProxyServer(
-      port,
-      cliConfig.monitor || cliConfig.useGeminiNative ? undefined : cliConfig.openrouterApiKey!,
-      cliConfig.monitor || cliConfig.useGeminiNative ? undefined : (typeof cliConfig.model === "string" ? cliConfig.model : undefined),
-      cliConfig.monitor,
-      cliConfig.anthropicApiKey,
-      process.env[ENV.GEMINI_API_KEY], // Pass Gemini API key if available
-      cliConfig.useGeminiNative, // Pass new flag
-      {
-        opus: cliConfig.modelOpus,
-        sonnet: cliConfig.modelSonnet,
-        haiku: cliConfig.modelHaiku,
-        subagent: cliConfig.modelSubagent,
-      }
-    );
+    const proxy = await createProxyServer({
+      ...cliConfig,
+      port: port,
+      geminiApiKey: process.env[ENV.GEMINI_API_KEY], // Ensure this is passed
+    });
 
     // Run Claude Code with proxy
     let exitCode = 0;

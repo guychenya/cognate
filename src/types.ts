@@ -47,6 +47,10 @@ export interface ClaudishConfig {
   costTracking?: boolean;
   auditCosts?: boolean;
   resetCosts?: boolean;
+
+  // Adapter configuration
+  adapter?: 'ollama' | 'openrouter';
+  ollamaHost?: string;
 }
 
 // Anthropic API Types

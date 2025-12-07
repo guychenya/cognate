@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { fuzzyScore } from "./utils.js";
 import { getProfile, getDefaultProfile, getModelMapping } from "./profile-config.js";
+import { setConfig } from "./state.js";
 
 // Read version from package.json
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,7 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
     freeOnly: false, // Show all models by default
     claudeArgs: [],
     useGeminiNative: false, // Default to false
+    adapter: 'openrouter', // Default adapter
   };
 
   // Check for environment variable overrides
@@ -69,6 +71,8 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
     }
   }
 
+  config.ollamaHost = process.env[ENV.OLLAMA_HOST];
+
   // Parse command line arguments
   let i = 0;
   while (i < args.length) {
@@ -82,6 +86,21 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
         throw new Error("--model requires a value");
       }
       config.model = modelArg; // Accept any model ID
+    } else if (arg === "--adapter") {
+      const adapterArg = args[++i];
+      if (adapterArg === 'ollama' || adapterArg === 'openrouter') {
+        config.adapter = adapterArg;
+      } else {
+        console.error(`Invalid adapter: ${adapterArg}. Must be 'ollama' or 'openrouter'.`);
+        throw new Error(`Invalid adapter: ${adapterArg}`);
+      }
+    } else if (arg === "--ollama-host") {
+      const hostArg = args[++i];
+      if (!hostArg) {
+        console.error("--ollama-host requires a URL");
+        throw new Error("--ollama-host requires a URL");
+      }
+      config.ollamaHost = hostArg;
     } else if (arg === "--model-opus") { // Model mapping flags
       const val = args[++i];
       if (val) config.modelOpus = val;
@@ -232,14 +251,14 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
       console.log("[claudish] API key will be extracted from Claude Code's requests");
       console.log("[claudish] Ensure you are logged in to Claude Code (claude auth login)");
     }
-  } else if (!config.useGeminiNative) { // Only check for OpenRouter API key if not in monitor mode AND not using native Gemini
+  } else if (config.adapter === 'openrouter' && !config.useGeminiNative) { // Only check for OpenRouter API key if not in monitor mode AND not using native Gemini
     // OpenRouter mode: requires OpenRouter API key
     const apiKey = process.env[ENV.OPENROUTER_API_KEY];
     if (!apiKey) {
       // In interactive mode, we'll prompt for it later
       // In non-interactive mode, it's required now
       if (!config.interactive) {
-        console.error("Error: OPENROUTER_API_KEY environment variable is required");
+        console.error("Error: OPENROUTER_API_KEY environment variable is required for the OpenRouter adapter.");
         console.error("Get your API key from: https://openrouter.ai/keys");
         console.error("");
         console.error("Set it now:");
@@ -289,7 +308,9 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
     }
   }
 
-  return config as ClaudishConfig;
+  const finalConfig = config as ClaudishConfig;
+  setConfig(finalConfig);
+  return finalConfig;
 }
 
 /**

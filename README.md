@@ -213,6 +213,8 @@ claudish [OPTIONS] <claude-args...>
 |------|-------------|---------|
 | `-i, --interactive` | Run in interactive mode (persistent session) | Single-shot mode |
 | `-m, --model <model>` | OpenRouter model to use | `x-ai/grok-code-fast-1` |
+| `--adapter <name>` | API adapter to use (`openrouter`, `ollama`) | `openrouter` |
+| `--ollama-host <url>` | Custom Ollama API host | `http://localhost:11434` |
 | `-p, --port <port>` | Proxy server port | Random (3000-9000) |
 | `-q, --quiet` | Suppress [claudish] log messages | **Quiet in single-shot** |
 | `-v, --verbose` | Show [claudish] log messages | Verbose in interactive |
@@ -238,6 +240,7 @@ claudish [OPTIONS] <claude-args...>
 | `CLAUDISH_MODEL` | Default model to use | ❌ No |
 | `CLAUDISH_PORT` | Default proxy port | ❌ No |
 | `CLAUDISH_ACTIVE_MODEL_NAME` | Automatically set by claudish to show active model in status line (read-only) | ❌ No |
+| `OLLAMA_HOST` | Custom Ollama API host (e.g., `http://192.168.1.100:11434`) | ❌ No |
 
 **Important Notes:**
 - **NEW in v1.3.0:** In interactive mode, if `OPENROUTER_API_KEY` is not set, you'll be prompted to enter it
@@ -374,6 +377,13 @@ claudish --model openai/gpt-5-codex "refactor entire API layer"
 
 # Use Qwen for UI tasks
 claudish --model qwen/qwen3-vl-235b-a22b-instruct "implement dashboard UI"
+```
+
+### Using with Ollama
+
+```bash
+# Run a local model with the ollama adapter
+claudish --adapter ollama --model llama3 "explain this code"
 ```
 
 ### Autonomous Mode

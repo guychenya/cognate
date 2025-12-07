@@ -8,12 +8,8 @@ import { transformOpenAIToClaude, removeUriFormat } from "../transform.js";
 import { log, logStructured, isLoggingEnabled } from "../logger.js";
 import { fetchModelContextWindow, doesModelSupportReasoning } from "../model-loader.js";
 import { generateUniqueId } from "../utils.js";
-
-const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const OPENROUTER_HEADERS = {
-  "HTTP-Referer": "https://github.com/MadAppGang/claude-code",
-  "X-Title": "Claudish - OpenRouter Proxy",
-};
+import { getConfig } from "../state.js";
+import { OPENROUTER_API_URL, OLLAMA_DEFAULT_HOST, OPENROUTER_HEADERS } from "../config.js";
 
 export class OpenRouterHandler implements APIHandler {
   private targetModel: string;
@@ -74,14 +70,11 @@ export class OpenRouterHandler implements APIHandler {
     modelConfig?: ModelConfig,
     tools?: any[], // New: Optional tools parameter
   ): Promise<GenerationResult> {
+    const config = getConfig();
     const target = modelId;
     await this.fetchContextWindow(target);
-    // const toolCalls: ToolCall[] = []; // toolCalls and reasoningDetails are now gathered in handleStreamingResponse
-    // const reasoningDetails: any[] = [];
 
-
-
-    logStructured(`OpenRouter Request`, { targetModel: target, originalModel: modelId });
+    logStructured(`Request Handling`, { targetModel: target, originalModel: modelId, adapter: config.adapter });
 
     const request = {
       model: modelId,
@@ -106,15 +99,7 @@ export class OpenRouterHandler implements APIHandler {
       stream_options: { include_usage: true },
     };
 
-    if (supportsReasoning) openRouterPayload.include_reasoning = true;
-    // openRouterPayload.thinking = request.thinking; // No direct mapping for thinking in generic model config yet
-
-    // TODO: Handle tool_choice from modelConfig if needed
-    // if (request.tool_choice) {
-    //   const { type, name } = request.tool_choice;
-    //   if (type === 'tool' && name) openRouterPayload.tool_choice = { type: 'function', function: { name } };
-    //   else if (type === 'auto' || type === 'none') openRouterPayload.tool_choice = type;
-    // }
+    if (supportsReasoning && config.adapter !== 'ollama') openRouterPayload.include_reasoning = true;
 
     const adapter = this.adapterManager.getAdapter();
     if (typeof adapter.reset === 'function') adapter.reset();
@@ -122,27 +107,35 @@ export class OpenRouterHandler implements APIHandler {
 
     await this.middlewareManager.beforeRequest({ modelId: target, messages, tools: convertedTools, stream: true });
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    let apiUrl = OPENROUTER_API_URL;
+    let headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${this.apiKey}`,
+        ...OPENROUTER_HEADERS,
+    };
+
+    if (config.adapter === 'ollama') {
+      const ollamaHost = config.ollamaHost || OLLAMA_DEFAULT_HOST;
+      apiUrl = `${ollamaHost}/api/chat`;
+      headers = { "Content-Type": "application/json" };
+      log(`[OllamaAdapter] Using Ollama endpoint: ${apiUrl}`);
+    }
+
+    const response = await fetch(apiUrl, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${this.apiKey}`,
-            ...OPENROUTER_HEADERS,
-        },
+        headers: headers,
         body: JSON.stringify(openRouterPayload)
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      log(`OpenRouter API Error: ${response.status} - ${errorText}`);
-      throw new Error(`OpenRouter API Error: ${response.status} - ${errorText}`);
+      log(`API Error: ${response.status} - ${errorText}`);
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
-
-    // Dropped params header is for Hono context, no longer needed in APIHandler
-    // if (droppedParams.length > 0) c.header("X-Dropped-Params", droppedParams.join(", "));
 
     return this.handleStreamingResponse(response, adapter, target, onChunk);
   }
+
 
   // Remove the unused processUserMessage and processAssistantMessage
   private processUserMessage(msg: Message, messages: any[]) {}

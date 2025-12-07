@@ -81,10 +81,15 @@ export const ENV = {
   ANTHROPIC_DEFAULT_SONNET_MODEL: "ANTHROPIC_DEFAULT_SONNET_MODEL",
   ANTHROPIC_DEFAULT_HAIKU_MODEL: "ANTHROPIC_DEFAULT_HAIKU_MODEL",
   CLAUDE_CODE_SUBAGENT_MODEL: "CLAUDE_CODE_SUBAGENT_MODEL",
+  // Ollama Configuration
+  OLLAMA_HOST: "OLLAMA_HOST",
 } as const;
 
-// OpenRouter API Configuration
+// API Endpoints
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+export const OLLAMA_DEFAULT_HOST = "http://localhost:11434";
+
+// OpenRouter API Configuration
 export const OPENROUTER_HEADERS = {
   "HTTP-Referer": "https://github.com/MadAppGang/claude-code",
   "X-Title": "Claudish - OpenRouter Proxy",
