@@ -1,11 +1,11 @@
 {
-  "name": "claudish",
+  "name": "cognate",
   "version": "2.8.0",
-  "description": "Run Claude Code with any OpenRouter model - CLI tool and MCP server",
+  "description": "Universal AI model adapter. Connect to any LLM, from proprietary APIs to local open-source models.",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "claudish": "dist/index.js"
+    "cognate": "dist/index.js"
   },
   "scripts": {
     "dev": "bun run src/index.ts",
@@ -16,9 +16,9 @@
     "extract-models": "bun run scripts/extract-models.ts",
     "build": "bun build src/index.ts --outdir dist --target node && chmod +x dist/index.js",
     "link": "npm link",
-    "unlink": "npm unlink -g claudish",
+    "unlink": "npm unlink -g cognate",
     "install-global": "bun run build && npm link",
-    "kill-all": "pkill -f 'bun.*claudish' || pkill -f 'claude.*claudish-settings' || echo 'No claudish processes found'",
+    "kill-all": "pkill -f 'bun.*cognate' || pkill -f 'claude.*cognate-settings' || echo 'No cognate processes found'",
     "test": "bun test ./tests/comprehensive-model-test.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",

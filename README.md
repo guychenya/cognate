@@ -57,7 +57,6 @@ bun install -g claudish
 **Option 3: Install from source**
 
 ```bash
-cd mcp/claudish
 bun install        # or: npm install
 bun run build      # or: npm run build
 bun link           # or: npm link
@@ -762,13 +761,13 @@ Claudish implements a "Dual-Accounting" system:
 ### Project Structure
 
 ```
-mcp/claudish/
+.
 ├── src/
 │   ├── index.ts              # Main entry point
 │   ├── cli.ts                # CLI argument parser
 │   ├── proxy-server.ts       # Hono-based proxy server
 │   ├── transform.ts          # API format translation (from claude-code-proxy)
-│   ├── claude-runner.ts      # Claude CLI runner (creates temp settings)
+│   ├── claude-runner.ts      # Cognate CLI runner (creates temp settings)
 │   ├── port-manager.ts       # Port utilities
 │   ├── config.ts             # Constants and defaults
 │   └── types.ts              # TypeScript types
